@@ -218,7 +218,7 @@ function GalaxyBrain() {
       sg.addColorStop(0, "#ffffff25"); sg.addColorStop(.3, "#8228d2cc"); sg.addColorStop(.7, "#38d9f5aa"); sg.addColorStop(1, "#1ea0d778");
       ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(cx, cy, coreR, 0, 6.28); ctx.fill();
       ctx.font = "12px sans-serif"; ctx.textAlign = "center"; ctx.fillText("⚡", cx, cy + 1);
-      ctx.font = "700 8px Inter, sans-serif"; ctx.fillStyle = "#f4f0ff"; ctx.fillText("APEX", cx, cy + coreR + 12);
+      // label removed
 
       // Module nodes
       nodes.forEach(n => {
