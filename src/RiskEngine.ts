@@ -185,7 +185,7 @@ export function checkRiskControls(project: ProjectData): RiskAlert[] {
     const last3 = entries.slice(-3);
     const avgKpi = last3.reduce((s, e) => s + (e.kpiActual || 0), 0) / 3;
     const target = project.targetKpi || 0;
-    const isFin = ["CPA", "CPV", "CPC"].includes(project.kpiType);
+    const isFin = ["CPA", "CPV", "CPC", "CPCV", "CPL", "CPI"].includes(project.kpiType);
 
     const kpiOk = isFin ? avgKpi <= target : avgKpi >= target;
     const drift = isFin ? ((avgKpi - target) / target) * 100 : ((target - avgKpi) / target) * 100;

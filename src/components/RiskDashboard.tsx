@@ -71,7 +71,7 @@ export function AnalysePieCards({ project }: { project: ProjectData }) {
   const actual = project.actualKpi || 0;
   const isFin = ["CPA", "CPV", "CPC", "CPCV", "CPL", "CPI"].includes(project.kpiType);
   const kpiMet = isFin ? actual <= target : actual >= target;
-  const fmtKpiVal = (v: number) => v < 0.1 ? v.toFixed(4) : v < 1 ? v.toFixed(3) : v.toFixed(2);
+  const fmtKpiVal = (v: number) => v < 0.1 ? v.toFixed(3) : v < 1 ? v.toFixed(3) : v.toFixed(2);
 
   const totalDays = project.durationDays || 30;
   const elapsedDays = entries.length;
