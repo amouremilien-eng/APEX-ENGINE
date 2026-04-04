@@ -350,8 +350,8 @@ export function computeOptimalBid(
   for (let i = 0; i <= steps; i++) {
     const candidateBid = bidMin + i * bidStep;
 
-    // CPM Revenue correspondant pour atteindre la marge cible
-    const candidateCpmRevenue = candidateBid / (1 - targetMarginPct / 100);
+    // CPM Revenue correspondant pour atteindre la marge cible — proteger contre marge >= 100%
+    const candidateCpmRevenue = candidateBid / Math.max(0.01, (1 - Math.min(99, targetMarginPct) / 100));
 
     // Vérification Cap
     const respectsCap = cpmSoldCap <= 0 || candidateCpmRevenue <= cpmSoldCap * 1.02;
@@ -476,7 +476,8 @@ function projectKpiFromBid(
   currentMargin?: number,
   newMargin?: number,
 ): number {
-  if (currentKpi === 0) return 0;
+  if (!currentKpi || currentKpi === 0 || !isFinite(currentKpi)) return currentKpi || 0;
+  if (!isFinite(newBid) || !isFinite(newCpmRevenue) || newBid <= 0) return currentKpi;
   // Si le bid ne change pas ET la marge ne change pas, retourner le KPI actuel
   if (Math.abs(newBid - currentBid) < 0.01 && (newMargin === undefined || currentMargin === undefined || Math.abs(newMargin - currentMargin) < 0.5)) {
     return currentKpi;
@@ -582,21 +583,27 @@ export function computeBidShadingScenarios(
   realKpiTrendPct?: number | null,
 ): BidShadingResult {
 
+  // Protection inputs invalides
+  const safeCpmCost = Math.max(0.01, currentCpmCost || 0.01);
+  const safeCpmRevenue = Math.max(0.01, currentCpmRevenue || 0.01);
+  const safeMargin = Math.max(0, Math.min(99, currentMarginPct || 0));
+  const safeTargetMargin = Math.max(0, Math.min(99, targetMarginPct || 0));
+
   const config = getKpiConfig(kpiType);
   const isFin = config.direction === "lower_is_better";
 
   // --- COURBE DE WIN RATE ---
   const winRateCurve = estimateWinRateCurve(
-    currentCpmCost, currentCpmRevenue, cpmSoldCap, dailySpends, dailyEntries
+    safeCpmCost, safeCpmRevenue, cpmSoldCap, dailySpends, dailyEntries
   );
 
   // --- CONTEXTE MARCHÉ ---
-  const currentWinRate = winRateCurve.predict(currentCpmCost);
-  const marketContext = computeMarketContext(currentCpmCost, currentCpmRevenue, cpmSoldCap, winRateCurve);
+  const currentWinRate = winRateCurve.predict(safeCpmCost);
+  const marketContext = computeMarketContext(safeCpmCost, safeCpmRevenue, cpmSoldCap, winRateCurve);
 
   // --- SCÉNARIO 1 : BID STABLE ---
   const scenario1 = computeStableScenario(
-    currentCpmCost, currentCpmRevenue, currentMarginPct, targetMarginPct,
+    safeCpmCost, safeCpmRevenue, safeMargin, safeTargetMargin,
     currentKpi, targetKpi, kpiType, config, isFin, cpmSoldCap,
     budgetDailyAvg, daysRemaining, currentWinRate, winRateCurve,
     calibratedStats, realKpiVolatility, realKpiTrendPct
@@ -604,13 +611,13 @@ export function computeBidShadingScenarios(
 
   // --- SCÉNARIO 2 : BID SHADING OPTIMAL ---
   const optimalResult = computeOptimalBid(
-    currentCpmCost, currentCpmRevenue, currentMarginPct, targetMarginPct,
+    safeCpmCost, safeCpmRevenue, safeMargin, safeTargetMargin,
     cpmSoldCap, currentKpi, targetKpi, kpiType, winRateCurve,
     budgetDailyAvg, daysRemaining, calibratedStats, crossCampaignPrior
   );
 
   const scenario2 = computeOptimalScenario(
-    optimalResult, currentCpmCost, currentCpmRevenue, currentMarginPct,
+    optimalResult, safeCpmCost, safeCpmRevenue, safeMargin,
     currentKpi, targetKpi, kpiType, config, isFin, cpmSoldCap,
     budgetDailyAvg, daysRemaining, currentWinRate, winRateCurve,
     calibratedStats, realKpiVolatility, realKpiTrendPct
@@ -618,7 +625,7 @@ export function computeBidShadingScenarios(
 
   // --- SCÉNARIO 3 : BID CAP-ALIGNED (AGRESSIF) ---
   const scenario3 = computeCapAlignedScenario(
-    currentCpmCost, currentCpmRevenue, currentMarginPct, targetMarginPct,
+    safeCpmCost, safeCpmRevenue, safeMargin, safeTargetMargin,
     currentKpi, targetKpi, kpiType, config, isFin, cpmSoldCap,
     budgetDailyAvg, daysRemaining, currentWinRate, winRateCurve,
     calibratedStats, realKpiVolatility, realKpiTrendPct
@@ -649,8 +656,9 @@ function computeStableScenario(
   realKpiTrendPct?: number | null,
 ): BidShadingScenario {
 
-  // Bid inchangé, CPM Revenue change
-  const newCpmRevenue = currentCpmCost / (1 - targetMarginPct / 100);
+  // Bid inchange, CPM Revenue change — proteger contre marge >= 100%
+  const safeTargetMg = Math.min(99, targetMarginPct);
+  const newCpmRevenue = currentCpmCost / Math.max(0.01, (1 - safeTargetMg / 100));
 
   // KPI projeté
   const kpiProjected = projectKpiFromBid(
