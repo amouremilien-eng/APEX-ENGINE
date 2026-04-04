@@ -243,21 +243,6 @@ export function BidShadingPanel(props: BidShadingPanelProps) {
                 </span>
               </div>
 
-              {/* Win Rate */}
-              <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-[10px] text-gray-500">Win Rate</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-bold text-gray-800">{(scenario.winRateEstimated * 100).toFixed(0)}%</span>
-                  {scenario.winRateDelta !== 0 && (
-                    <span className={cn("text-[10px] font-bold",
-                      scenario.winRateDelta > 0 ? "text-emerald-600" : "text-red-600"
-                    )}>
-                      ({scenario.winRateDelta > 0 ? "+" : ""}{(scenario.winRateDelta * 100).toFixed(0)}%)
-                    </span>
-                  )}
-                </div>
-              </div>
-
               {/* KPI Optimiste / Pessimiste */}
               <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg p-3 space-y-2">
                 <div className="text-[10px] font-bold text-gray-700 flex items-center justify-between">
