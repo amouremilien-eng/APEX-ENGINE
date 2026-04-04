@@ -2,7 +2,11 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-mono: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-mono, [style*="monospace"] {
+  font-variant-numeric: tabular-nums;
 }
 
 @layer base {

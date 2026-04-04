@@ -453,7 +453,7 @@ function WinRateCard({ project }: { project: ProjectData }) {
     c.strokeStyle = "#f1f5f9"; c.lineWidth = 1;
     for (let i = 0; i <= 4; i++) { const y = pad + (i / 4) * (h - pad * 2); c.beginPath(); c.moveTo(pad, y); c.lineTo(w - pad, y); c.stroke(); }
     // Y labels
-    c.font = "500 9px JetBrains Mono, monospace"; c.fillStyle = "#94a3b8"; c.textAlign = "right";
+    c.font = "500 9px Inter, sans-serif"; c.fillStyle = "#94a3b8"; c.textAlign = "right";
     for (let i = 0; i <= 4; i++) { const y = pad + (i / 4) * (h - pad * 2); c.fillText((4 - i) * 25 + "%", pad - 6, y + 3); }
 
     // Curve fill
