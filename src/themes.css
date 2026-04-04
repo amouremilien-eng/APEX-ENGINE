@@ -1,0 +1,98 @@
+/* =============================================
+   BLOOMBERG TERMINAL ADS — THEMES
+   5 thèmes : salesin, biggie, gamned, light, dark
+   ============================================= */
+
+:root,
+[data-theme="salesin"] {
+  --bg-page: 248 249 250;
+  --bg-card: 255 255 255;
+  --text-primary: 17 24 39;
+  --text-secondary: 107 114 128;
+  --border-color: 229 231 235;
+  --color-primary: 59 130 246;
+  --color-secondary: 16 185 129;
+  --color-accent: 245 158 11;
+}
+
+[data-theme="biggie"] {
+  --bg-page: 245 247 252;
+  --bg-card: 255 255 255;
+  --text-primary: 30 27 75;
+  --text-secondary: 100 106 134;
+  --border-color: 218 222 237;
+  --color-primary: 107 155 209;
+  --color-secondary: 155 123 198;
+  --color-accent: 78 115 223;
+}
+
+[data-theme="gamned"] {
+  --bg-page: 253 245 248;
+  --bg-card: 255 255 255;
+  --text-primary: 55 15 40;
+  --text-secondary: 130 90 110;
+  --border-color: 237 218 228;
+  --color-primary: 232 93 93;
+  --color-secondary: 217 70 166;
+  --color-accent: 139 70 199;
+}
+
+[data-theme="light"] {
+  --bg-page: 255 255 255;
+  --bg-card: 249 250 251;
+  --text-primary: 0 0 0;
+  --text-secondary: 75 85 99;
+  --border-color: 229 231 235;
+  --color-primary: 0 0 0;
+  --color-secondary: 107 114 128;
+  --color-accent: 59 130 246;
+}
+
+[data-theme="dark"] {
+  --bg-page: 17 24 39;
+  --bg-card: 31 41 55;
+  --text-primary: 243 244 246;
+  --text-secondary: 156 163 175;
+  --border-color: 55 65 81;
+  --color-primary: 96 165 250;
+  --color-secondary: 52 211 153;
+  --color-accent: 251 191 36;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgb(var(--border-color));
+  background: rgb(var(--bg-card));
+  color: rgb(var(--text-secondary));
+}
+
+.theme-toggle:hover {
+  border-color: rgb(var(--color-primary));
+  color: rgb(var(--color-primary));
+}
+
+.theme-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: rgb(var(--color-primary));
+}
+
+.theme-salesin { --_theme-gradient: linear-gradient(135deg, #3b82f6, #10b981); }
+.theme-biggie  { --_theme-gradient: linear-gradient(135deg, #6B9BD1, #9B7BC6); }
+.theme-gamned  { --_theme-gradient: linear-gradient(135deg, #E85D5D, #D946A6, #8B46C7); }
+.theme-light   { --_theme-gradient: linear-gradient(135deg, #ffffff, #e5e7eb); }
+.theme-dark    { --_theme-gradient: linear-gradient(135deg, #111827, #374151); }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgb(var(--bg-page)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--border-color)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--text-secondary)); }
