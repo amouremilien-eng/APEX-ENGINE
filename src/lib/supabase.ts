@@ -1,19 +1,11 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+// ============================================================
+// 🔧 Bloomberg Terminal Ads — Phase de Test
+// Supabase DÉSACTIVÉ — localStorage uniquement
+// Quand tu seras prêt pour la production, réactive Supabase ici
+// ============================================================
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-let supabaseClient: SupabaseClient | null = null;
-
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log("☁️ Supabase connecté");
-} else {
-  console.log("📦 Mode localStorage uniquement (Supabase non configuré)");
-}
-
-export const supabase = supabaseClient;
+export const supabase = null;
 
 export function isSupabaseEnabled(): boolean {
-  return supabaseClient !== null;
+  return false;
 }
