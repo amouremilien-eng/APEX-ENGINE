@@ -245,17 +245,17 @@ export function estimateWinRateCurve(
 
   // k = pente de la courbe
   // Calibrer k tel que winRate(currentCpmCost) ≈ currentFillRate
-  // currentFillRate = L / (1 + exp(-k * (currentCpmCost - x0)))
-  // => exp(-k * (currentCpmCost - x0)) = L / currentFillRate - 1
-  // => k = -ln(L / currentFillRate - 1) / (currentCpmCost - x0)
+  // On utilise une approche robuste qui fonctionne meme quand bid ≈ marche
   const fillRatio = L / Math.max(0.01, currentFillRate) - 1;
   const bidDelta = currentCpmCost - x0;
   let k: number;
   if (Math.abs(bidDelta) < 0.01 || fillRatio <= 0) {
-    k = 1.0; // Défaut si bid ≈ marché
+    // Bid tres proche du marche : utiliser une pente basee sur l'echelle des prix
+    // Plus le CPM est petit, plus la courbe doit etre sensible
+    k = Math.max(0.8, 3.0 / Math.max(0.5, x0));
   } else {
     k = -Math.log(Math.max(0.01, fillRatio)) / bidDelta;
-    k = Math.max(0.3, Math.min(5.0, k)); // Cap entre 0.3 et 5.0
+    k = Math.max(0.5, Math.min(5.0, k));
   }
 
   // --- CONFIANCE ---
@@ -477,24 +477,30 @@ function projectKpiFromBid(
   if (currentKpi === 0) return 0;
   if (Math.abs(newBid - currentBid) < 0.01) return currentKpi;
 
-  // --- PRIORITÉ 1 : Modèle de saturation (non-linéaire, le plus fiable) ---
+  // --- PRIORITÉ 1 : Modèle de saturation (non-linéaire) ---
+  // Utilise seulement si confiance elevee ET prediction raisonnable
   if (calibratedStats?.saturationModel &&
-      calibratedStats.saturationModel.confidence > 0.3 &&
-      calibratedStats.saturationModel.dataPoints >= 7 &&
+      calibratedStats.saturationModel.confidence > 0.5 &&
+      calibratedStats.saturationModel.dataPoints >= 10 &&
       newMargin !== undefined) {
     const predicted = calibratedStats.saturationModel.predict(newMargin);
-    // Cap raisonnable : 10% à 500% du KPI actuel
-    return Math.max(currentKpi * 0.10, Math.min(currentKpi * 5.0, predicted));
+    // Cap strict : 50% a 200% du KPI actuel (pas de valeurs aberrantes)
+    if (predicted > currentKpi * 0.5 && predicted < currentKpi * 2.0) {
+      return predicted;
+    }
+    // Si la prediction est aberrante, on tombe dans le modele suivant
   }
 
   // --- PRIORITÉ 2 : Modèle linéaire empirique ---
   if (calibratedStats &&
-      calibratedStats.elasticityConfidence > 0.3 &&
+      calibratedStats.elasticityConfidence > 0.4 &&
       calibratedStats.marginKpiElasticity !== 0 &&
       currentMargin !== undefined && newMargin !== undefined) {
     const marginDelta = newMargin - currentMargin;
-    const kpiChangeRatio = 1 + calibratedStats.marginKpiElasticity * marginDelta;
-    return currentKpi * Math.max(0.20, Math.min(3.0, kpiChangeRatio));
+    // Limiter l'impact de l'elasticite pour eviter les projections extremes
+    const clampedDelta = Math.max(-20, Math.min(20, marginDelta));
+    const kpiChangeRatio = 1 + calibratedStats.marginKpiElasticity * clampedDelta;
+    return currentKpi * Math.max(0.50, Math.min(2.0, kpiChangeRatio));
   }
 
   // --- PRIORITÉ 3 : Modèle théorique ---
@@ -506,19 +512,16 @@ function projectKpiFromBid(
   const bidChangeRatio = currentBid > 0 ? newBid / currentBid : 1;
 
   if (isFin) {
-    // KPI financier (CPA, CPC, etc.)
-    // Bid plus bas → moins de volume → CPA monte
-    // Bid plus haut → plus de volume → CPA baisse (économie d'échelle)
-
+    // KPI financier (CPA, CPC, CPCV, etc.)
     // Impact volume : bid → reach → conversions
-    const volumeRatio = Math.pow(bidChangeRatio, config.bidSensitivity);
+    const volumeRatio = Math.pow(Math.max(0.3, Math.min(3.0, bidChangeRatio)), config.bidSensitivity);
 
-    // CPA projeté = (spend / conversions) × impact bid
-    // Si on bid plus haut : spend monte (ratio CPM Rev) mais conversions montent aussi (volume)
-    // Net : CPA = currentCPA × (cpmRevenueRatio / volumeRatio)
-    const projectedKpi = currentKpi * cpmRevenueRatio / volumeRatio;
+    // CPA projete = currentCPA × (cpmRevenueRatio / volumeRatio)
+    // Borner les ratios pour eviter les valeurs extremes
+    const clampedRevenueRatio = Math.max(0.3, Math.min(3.0, cpmRevenueRatio));
+    const projectedKpi = currentKpi * clampedRevenueRatio / volumeRatio;
 
-    return Math.max(currentKpi * 0.20, Math.min(currentKpi * 5.0, projectedKpi));
+    return Math.max(currentKpi * 0.50, Math.min(currentKpi * 2.0, projectedKpi));
   } else {
     // KPI qualité (CTR, VTR, Viewability)
     // Bid plus haut → accès inventaire premium → CTR monte
@@ -751,9 +754,11 @@ function computeOptimalScenario(
   // Cap
   const capExcess = cpmSoldCap > 0 ? Math.max(0, (newCpmRevenue - cpmSoldCap) / cpmSoldCap * 100) : 0;
 
-  // Gain
+  // Gain — prendre en compte la marge ET le win rate
   const currentGainPerDay = budgetDailyAvg * (currentMarginPct / 100);
-  const gainPerDay = budgetDailyAvg * (optimalMargin / 100) * (optimalWinRate / Math.max(0.01, currentWinRate));
+  const winRateRatio = currentWinRate > 0.01 ? optimalWinRate / currentWinRate : 1;
+  // Le gain est la marge × impact volume (win rate change delivrance)
+  const gainPerDay = budgetDailyAvg * (optimalMargin / 100) * Math.max(0.3, Math.min(2.0, winRateRatio));
 
   // Warnings
   const warnings: BidShadingWarning[] = [];
@@ -886,7 +891,8 @@ function computeCapAlignedScenario(
 
   // Gain
   const currentGainPerDay = budgetDailyAvg * (currentMarginPct / 100);
-  const gainPerDay = budgetDailyAvg * (effectiveMargin / 100) * (newWinRate / Math.max(0.01, currentWinRate));
+  const wrRatio = currentWinRate > 0.01 ? newWinRate / currentWinRate : 1;
+  const gainPerDay = budgetDailyAvg * (effectiveMargin / 100) * Math.max(0.3, Math.min(2.0, wrRatio));
 
   // Warnings
   const warnings: BidShadingWarning[] = [];

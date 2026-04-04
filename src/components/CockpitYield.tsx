@@ -26,6 +26,86 @@ import {
    predictPacing,                  // 🔮 V10.3 : Pacing Prédictif
   detectRegimeChanges,            // 🔄 V10.4 : Détection Régime
 } from "../LearningEngine";
+
+// Heatmap Campagne — grille calendaire
+function HeatmapCampagne({ project, currSym, fmtKpi, clientMode }: { project: ProjectData; currSym: string; fmtKpi: (v: number) => string; clientMode?: boolean }) {
+  const entries = project.dailyEntries || [];
+  if (entries.length === 0) return null;
+  const sorted = [...entries].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const currentMarginCalc = project.cpmRevenueActual > 0 ? ((project.cpmRevenueActual - project.cpmCostActuel) / project.cpmRevenueActual) * 100 : 0;
+  const maxSpend = Math.max(...sorted.map(e => e.budgetSpent || 0), 1);
+  const cap = project.cpmSoldCap || 0;
+  const avgMargin = sorted.reduce((s, e) => s + (e.marginPct ?? currentMarginCalc), 0) / sorted.length;
+  const avgSpend = sorted.reduce((s, e) => s + (e.budgetSpent || 0), 0) / sorted.length;
+
+  const marginColor = (m: number): { bg: string; text: string } => {
+    if (m >= 80) return { bg: "#bbf7d0", text: "#166534" };
+    if (m >= 60) return { bg: "#93c5fd", text: "#1e3a8a" };
+    if (m >= 40) return { bg: "#fde68a", text: "#92400e" };
+    return { bg: "#fca5a5", text: "#7f1d1d" };
+  };
+
+  const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  const firstDate = new Date(sorted[0].date);
+  const firstDayOfWeek = (firstDate.getDay() + 6) % 7;
+  const cells: (typeof sorted[0] | null)[] = [];
+  for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
+  sorted.forEach(e => cells.push(e));
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+      <h4 className="font-black text-gray-900 mb-4 flex items-center gap-2 text-sm">
+        Heatmap Campagne
+        <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full ml-auto">{entries.length} jours</span>
+      </h4>
+      <div className="grid grid-cols-7 gap-2.5 mb-1.5">
+        {days.map(d => <div key={d} className="text-[10px] font-bold text-gray-400 text-center">{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-2.5">
+        {cells.map((e, i) => {
+          if (!e) return <div key={i} className="rounded-xl" style={{ minHeight: "110px" }} />;
+          const spend = e.budgetSpent || 0;
+          const margin = Math.min(100, e.marginPct ?? currentMarginCalc);
+          const mc = marginColor(margin);
+          const cpmRev = e.cpmRev || project.cpmRevenueActual || 0;
+          const exceedsCap = cap > 0 && cpmRev > cap;
+          return (
+            <div key={i} className="rounded-xl flex flex-col items-center justify-between py-2.5 px-1.5 transition-transform hover:scale-[1.03] cursor-default relative"
+              style={{ background: mc.bg, border: exceedsCap ? "2px solid #ef4444" : "1px solid rgba(0,0,0,0.06)", minHeight: "110px" }}
+              title={`${new Date(e.date).toLocaleDateString('fr-FR')} — Spend: ${spend.toFixed(0)}${currSym} | Marge: ${margin.toFixed(1)}% | ${project.kpiType}: ${e.kpiActual ? fmtKpi(e.kpiActual) : '—'}${exceedsCap ? ' | CPM > CAP' : ''}`}
+            >
+              <div className="text-[11px] text-gray-500 font-semibold" style={{ fontVariantNumeric: "tabular-nums" }}>{new Date(e.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</div>
+              <div className="flex flex-col items-center mt-auto mb-auto">
+                <div className="text-[15px] font-bold text-gray-800 mb-1" style={{ fontVariantNumeric: "tabular-nums" }}>{spend >= 1000 ? `${(spend/1000).toFixed(1)}k` : spend.toFixed(0)} {currSym}</div>
+                <div className="text-[15px] font-black" style={{ color: mc.text, fontVariantNumeric: "tabular-nums" }}>{margin.toFixed(0)}%</div>
+                {e.kpiActual ? <div className="text-[11px] font-bold text-gray-600 mt-1" style={{ fontVariantNumeric: "tabular-nums" }}>{fmtKpi(e.kpiActual)}</div> : null}
+              </div>
+              <div className="w-full rounded-b-lg bg-blue-400 mt-1" style={{ height: `${Math.max(3, (spend / maxSpend) * 14)}px`, opacity: 0.25 }} />
+              {exceedsCap && <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-[10px] text-gray-400 flex-wrap">
+        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ background: "#bbf7d0" }} /> &gt; 80%</div>
+        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ background: "#93c5fd" }} /> 60-80%</div>
+        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ background: "#fde68a" }} /> 40-60%</div>
+        <div className="flex items-center gap-1"><span className="w-3 h-3 rounded" style={{ background: "#fca5a5" }} /> &lt; 40%</div>
+        <div className="flex items-center gap-1 ml-auto"><span className="w-3 h-3 rounded border-2 border-red-500 bg-white" /> CPM &gt; Cap</div>
+      </div>
+      {project.targetKpi > 0 && (
+        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+          <span>Objectif {project.kpiType} : <strong className="text-gray-900">{fmtKpi(project.targetKpi)}</strong></span>
+          <span>•</span>
+          {!clientMode && <><span>Marge Cumulee : <strong className="text-gray-900">{avgMargin.toFixed(1)}%</strong></span><span>•</span></>}
+          <span>Spend moyen/jour : <strong className="text-gray-900">{avgSpend.toFixed(0)} {currSym}</strong></span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface CockpitYieldProps {
   project: ProjectData;
   onChange: (project: ProjectData) => void;
@@ -2815,6 +2895,10 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
             <div className="p-8">
               {activeTab === "analyse" && (
   <div className="space-y-4">
+    {/* Heatmap Campagne — en premier */}
+    {project.dailyEntries && project.dailyEntries.length > 0 && (
+      <HeatmapCampagne project={project} currSym={currSym} fmtKpi={fmtKpi} clientMode={clientMode} />
+    )}
     {/* Camemberts de synthese */}
     <AnalysePieCards project={project} />
     {/* Controles de risque */}
@@ -3198,13 +3282,13 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
           <div className="bg-white rounded-lg p-3 border border-violet-100 text-center">
             <div className="text-[10px] text-gray-500 font-bold uppercase">Pacing Final</div>
             <div className={cn("text-xl font-black mt-1",
-              endProjection.pacingFinal >= 95 && endProjection.pacingFinal <= 105 ? "text-emerald-600" :
-              endProjection.pacingFinal >= 85 ? "text-amber-600" : "text-red-600"
+              Math.min(100, endProjection.pacingFinal) >= 95 ? "text-emerald-600" :
+              Math.min(100, endProjection.pacingFinal) >= 85 ? "text-amber-600" : "text-red-600"
             )}>
-              {endProjection.pacingFinal.toFixed(0)}%
+              {Math.min(100, endProjection.pacingFinal).toFixed(0)}%
             </div>
             <div className="text-[9px] text-gray-400 mt-1">
-              {endProjection.spendFinal.toFixed(0)} / {project.budgetTotal.toFixed(0)} {currSym}
+              {Math.min(endProjection.spendFinal, project.budgetTotal).toFixed(0)} / {project.budgetTotal.toFixed(0)} {currSym}
             </div>
           </div>
           <div className="bg-white rounded-lg p-3 border border-violet-100 text-center">
@@ -3231,57 +3315,7 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
     {/* ========================================
         🔥 V5.0 : GRAPHIQUE ÉVOLUTION DAILY ENTRIES
         ======================================== */}
-    {project.dailyEntries && project.dailyEntries.length >= 2 && (
-      <div className="mt-4 bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-        <h4 className="font-black text-gray-900 mb-4 flex items-center gap-2 text-sm">
-          📊 Évolution Quotidienne
-          <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full ml-auto">
-            {project.dailyEntries.length} jours
-          </span>
-        </h4>
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={[...project.dailyEntries]
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                .map(e => ({
-                  date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
-                  spend: e.budgetSpent,
-                  kpi: e.kpiActual,
-                  marge: e.marginPct
-                }))}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="spend" orientation="left" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false}
-                tickFormatter={(v) => `${v >= 1000 ? (v/1000).toFixed(0)+'k' : v.toFixed(0)}`} />
-              <YAxis yAxisId="kpi" orientation="right" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
-                formatter={(value: number, name: string) => {
-                  if (name === "Spend") return [`${value.toFixed(0)} ${currSym}`, "Spend"];
-                  if (name === "Marge %") return [`${value.toFixed(1)}%`, "Marge %"];
-                  return [fmtKpi(value), project.kpiType];
-                }}
-              />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-              <Bar yAxisId="spend" dataKey="spend" fill="#c7d2fe" radius={[4, 4, 0, 0]} name="Spend" barSize={20} />
-              <Line yAxisId="kpi" type="monotone" dataKey="kpi" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444' }} name={project.kpiType} />
-              {!clientMode && <Line yAxisId="kpi" type="monotone" dataKey="marge" stroke="#10b981" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2, fill: '#10b981' }} name="Marge %" />}
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-        {project.targetKpi > 0 && (
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-            <span>Objectif {project.kpiType} : <strong className="text-gray-900">{fmtKpi(project.targetKpi)}</strong></span>
-            <span>•</span>
-            {!clientMode && <><span>Marge Cumulée : <strong className="text-gray-900">{dailyAverages.avgMargin.toFixed(1)}%</strong></span><span>•</span></>}
-            <span>Spend moyen/jour : <strong className="text-gray-900">{(project.dailyEntries.reduce((s,e) => s + e.budgetSpent, 0) / project.dailyEntries.length).toFixed(0)} {currSym}</strong></span>
-          </div>
-        )}
-      </div>
-    )}
+    {/* Heatmap deplacee en haut de l'onglet */}
 
     {/* ========================================
         🔥 V5.0 : COMPARAISON PÉRIODE vs PÉRIODE

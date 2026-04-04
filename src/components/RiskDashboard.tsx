@@ -45,9 +45,7 @@ function PieChart({ data, size = 120 }: { data: { label: string; value: number; 
           <path key={i} d={s.path} fill={s.color} stroke="#fff" strokeWidth="2" />
         ))}
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-lg font-black text-gray-900">{total > 0 ? "100%" : ""}</span>
-      </div>
+      {/* Centre gere par le parent */}
     </div>
   );
 }

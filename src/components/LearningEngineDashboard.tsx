@@ -644,20 +644,20 @@ function HeatmapCard({ project }: { project: ProjectData }) {
     const result: { margin: number; day: number; week: number }[] = [];
     const last28 = entries.slice(-28);
     last28.forEach((e, i) => {
-      result.push({ margin: e.marginPct || getMarginPct(project) + (Math.random() - .5) * 20, day: i % 7, week: ~~(i / 7) });
+      result.push({ margin: Math.min(99, e.marginPct != null ? Math.min(99, e.marginPct) : getMarginPct(project)), day: i % 7, week: ~~(i / 7) });
     });
     // Fill if < 28
     while (result.length < 28) {
-      result.push({ margin: getMarginPct(project) + (Math.random() - .5) * 20, day: result.length % 7, week: ~~(result.length / 7) });
+      result.push({ margin: Math.min(99, Math.max(0, getMarginPct(project) + (Math.random() - .5) * 3)), day: result.length % 7, week: ~~(result.length / 7) });
     }
     return result;
   }, [entries, project.cpmRevenueActual, project.cpmCostActuel]);
 
   const getColor = (m: number) => {
-    if (m > 45) return { bg: "bg-emerald-100", text: "text-emerald-700" };
-    if (m > 35) return { bg: "bg-blue-100", text: "text-blue-700" };
-    if (m > 25) return { bg: "bg-amber-100", text: "text-amber-700" };
-    return { bg: "bg-red-100", text: "text-red-700" };
+    if (m >= 80) return { bg: "bg-emerald-200", text: "text-emerald-800" };
+    if (m >= 60) return { bg: "bg-blue-200", text: "text-blue-800" };
+    if (m >= 40) return { bg: "bg-amber-200", text: "text-amber-800" };
+    return { bg: "bg-red-200", text: "text-red-800" };
   };
 
   return (
