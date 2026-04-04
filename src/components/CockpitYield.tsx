@@ -255,7 +255,7 @@ function computeTrueCostSpent(project: ProjectData): number {
   }
   return project.budgetSpent * (1 - project.margeInput / 100);
 }
-export function CockpitYield({ project, onChange, allProjects = [] }: CockpitYieldProps) {
+export function CockpitYield({ project, onChange, allProjects = [] , onSetActiveTab}: CockpitYieldProps) {
   const [activeTab, setActiveTab] = useState<"analyse" | "comparateur" | "multilines" | "historique" | "notes" | "radar">("analyse");
   const [dashSource, setDashSource] = useState<"sidebar" | "table">("sidebar");
   const [uplift, setUplift] = useState(project.uplift ?? 3.0);
