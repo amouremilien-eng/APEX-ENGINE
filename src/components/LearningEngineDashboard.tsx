@@ -28,6 +28,20 @@ interface Props {
   onNavigateToMarge?: () => void;
 }
 
+function getDaysRemaining(project: ProjectData): number {
+  if (project.endDate) {
+    const diff = Math.ceil((new Date(project.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (diff > 0) return diff;
+  }
+  return 15;
+}
+
+function getMarginPct(project: ProjectData): number {
+  return project.cpmRevenueActual > 0
+    ? ((project.cpmRevenueActual - project.cpmCostActuel) / project.cpmRevenueActual) * 100
+    : 0;
+}
+
 // ===== GALAXY BRAIN CANVAS =====
 function GalaxyBrain() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -374,7 +388,7 @@ function BidShadingCard({ project }: { project: ProjectData }) {
   const stats = useMemo(() => computeCampaignLearningStats(project), [project]);
   const winCurve = useMemo(() => {
     const spends = project.dailyEntries?.map(e => e.budgetSpent) || [];
-    return estimateWinRateCurve(project.cpmCostActuel, project.cpmRevenueActuel, project.cpmSoldCap || 0, spends, project.dailyEntries);
+    return estimateWinRateCurve(project.cpmCostActuel, project.cpmRevenueActual, project.cpmSoldCap || 0, spends, project.dailyEntries);
   }, [project]);
 
   const currentWR = winCurve.predict(project.cpmCostActuel);
@@ -382,12 +396,14 @@ function BidShadingCard({ project }: { project: ProjectData }) {
   const optWR = winCurve.predict(optimalBid);
   const aggBid = project.cpmCostActuel * 0.67;
   const aggWR = winCurve.predict(aggBid);
-  const margin = project.margeActuellePct;
+  const margin = project.cpmRevenueActual > 0
+    ? ((project.cpmRevenueActual - project.cpmCostActuel) / project.cpmRevenueActual) * 100
+    : 0;
 
   const scenarios = [
-    { emoji: "🛡️", name: "Stable", bid: project.cpmCostActuel, wr: (currentWR * 100).toFixed(0), margin: margin.toFixed(0), style: "bg-blue-50 border-blue-100", badgeStyle: "bg-blue-100 text-blue-700", badge: "LOW RISK" },
-    { emoji: "⚡", name: "Optimal", bid: optimalBid, wr: (optWR * 100).toFixed(0), margin: (margin + 10).toFixed(0), style: "bg-emerald-50 border-emerald-200", badgeStyle: "bg-emerald-100 text-emerald-700", badge: "RECOMMENDED" },
-    { emoji: "🔥", name: "Aggressive", bid: aggBid, wr: (aggWR * 100).toFixed(0), margin: (margin + 25).toFixed(0), style: "bg-red-50 border-red-100", badgeStyle: "bg-red-100 text-red-700", badge: "HIGH RISK" },
+    { emoji: "🛡️", name: "Stable", bid: project.cpmCostActuel, wr: ((currentWR * 100) || 0).toFixed(0), margin: (margin || 0).toFixed(0), style: "bg-blue-50 border-blue-100", badgeStyle: "bg-blue-100 text-blue-700", badge: "LOW RISK" },
+    { emoji: "⚡", name: "Optimal", bid: optimalBid, wr: ((optWR * 100) || 0).toFixed(0), margin: ((margin + 10) || 0).toFixed(0), style: "bg-emerald-50 border-emerald-200", badgeStyle: "bg-emerald-100 text-emerald-700", badge: "RECOMMENDED" },
+    { emoji: "🔥", name: "Aggressive", bid: aggBid, wr: ((aggWR * 100) || 0).toFixed(0), margin: ((margin + 25) || 0).toFixed(0), style: "bg-red-50 border-red-100", badgeStyle: "bg-red-100 text-red-700", badge: "HIGH RISK" },
   ];
 
   return (
@@ -404,7 +420,7 @@ function BidShadingCard({ project }: { project: ProjectData }) {
           <div key={s.name} className={`rounded-xl p-3 text-center border ${s.style}`}>
             <div className="text-xl">{s.emoji}</div>
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{s.name}</div>
-            <div className="font-mono text-lg font-bold text-gray-900 mt-1">€{s.bid.toFixed(2)}</div>
+            <div className="font-mono text-lg font-bold text-gray-900 mt-1">€{(s.bid || 0).toFixed(2)}</div>
             <div className="text-[11px] text-gray-500 leading-relaxed mt-1">Win Rate: {s.wr}%<br/>Margin: {s.margin}%</div>
             <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold mt-2 ${s.badgeStyle}`}>{s.badge}</span>
           </div>
@@ -419,7 +435,7 @@ function WinRateCard({ project }: { project: ProjectData }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const winCurve = useMemo(() => {
     const spends = project.dailyEntries?.map(e => e.budgetSpent) || [];
-    return estimateWinRateCurve(project.cpmCostActuel, project.cpmRevenueActuel, project.cpmSoldCap || 0, spends, project.dailyEntries);
+    return estimateWinRateCurve(project.cpmCostActuel, project.cpmRevenueActual, project.cpmSoldCap || 0, spends, project.dailyEntries);
   }, [project]);
 
   useEffect(() => {
@@ -480,7 +496,7 @@ function WinRateCard({ project }: { project: ProjectData }) {
         <>
           <strong className="text-blue-700">Sans API DSP, comment on estime ?</strong> Le <strong>ratio CPM Cost / Revenue</strong> donne ta position dans les enchères. Le <strong>coefficient de variation du spend</strong> journalier sert de proxy du fill rate.
           <br /><span className="font-mono text-[10px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded mt-1 inline-block">winRate(bid) = L / (1 + exp(-k × (bid - x₀)))</span>
-          <br />L = {winCurve.L.toFixed(2)}, k = {winCurve.k.toFixed(2)}, x₀ = €{winCurve.x0.toFixed(2)}, Confiance: {(winCurve.confidence * 100).toFixed(0)}%. <strong>Quand une API DSP sera connectée, les vraies données remplaceront cette estimation.</strong>
+          <br />L = {(winCurve.L || 0).toFixed(2)}, k = {(winCurve.k || 0).toFixed(2)}, x₀ = €{(winCurve.x0 || 0).toFixed(2)}, Confiance: {((winCurve.confidence || 0) * 100).toFixed(0)}%. <strong>Quand une API DSP sera connectée, les vraies données remplaceront cette estimation.</strong>
         </>
       }
     >
@@ -496,7 +512,7 @@ function LearningProgressCard({ project, allProjects }: { project: ProjectData; 
   const bayes = useMemo(() => getBayesianElasticity(stats, prior), [stats, prior]);
   const pacing = useMemo(() => {
     const spends = project.dailyEntries?.map(e => e.budgetSpent) || [];
-    return predictPacing(spends, project.budgetTotal, project.budgetSpent, project.joursRestants || 15);
+    return predictPacing(spends, project.budgetTotal, project.budgetSpent, getDaysRemaining(project));
   }, [project]);
 
   const bars = [
@@ -576,7 +592,7 @@ function FunnelCard({ project }: { project: ProjectData }) {
 function PacingCard({ project }: { project: ProjectData }) {
   const pacing = useMemo(() => {
     const spends = project.dailyEntries?.map(e => e.budgetSpent) || [];
-    return predictPacing(spends, project.budgetTotal, project.budgetSpent, project.joursRestants || 15);
+    return predictPacing(spends, project.budgetTotal, project.budgetSpent, getDaysRemaining(project));
   }, [project]);
 
   const pct = project.budgetTotal > 0 ? project.budgetSpent / project.budgetTotal : 0;
@@ -608,8 +624,8 @@ function PacingCard({ project }: { project: ProjectData }) {
         <div className="font-mono text-xs text-gray-500 space-y-1.5">
           <div>Budget: <strong className="text-gray-900">€{project.budgetTotal?.toLocaleString()}</strong></div>
           <div>Spent: <strong className="text-gray-900">€{project.budgetSpent?.toLocaleString()}</strong></div>
-          <div>Days left: <strong className="text-gray-900">{project.joursRestants || "—"}</strong></div>
-          <div>Predicted: <strong className="text-emerald-600">{predicted.toFixed(1)}%</strong></div>
+          <div>Days left: <strong className="text-gray-900">{getDaysRemaining(project)}</strong></div>
+          <div>Predicted: <strong className="text-emerald-600">{(predicted || 0).toFixed(1)}%</strong></div>
           <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${recColors[rec]}`}>
             ● {rec.toUpperCase()}
           </span>
@@ -628,14 +644,14 @@ function HeatmapCard({ project }: { project: ProjectData }) {
     const result: { margin: number; day: number; week: number }[] = [];
     const last28 = entries.slice(-28);
     last28.forEach((e, i) => {
-      result.push({ margin: e.marginPct || project.margeActuellePct + (Math.random() - .5) * 20, day: i % 7, week: ~~(i / 7) });
+      result.push({ margin: e.marginPct || getMarginPct(project) + (Math.random() - .5) * 20, day: i % 7, week: ~~(i / 7) });
     });
     // Fill if < 28
     while (result.length < 28) {
-      result.push({ margin: project.margeActuellePct + (Math.random() - .5) * 20, day: result.length % 7, week: ~~(result.length / 7) });
+      result.push({ margin: getMarginPct(project) + (Math.random() - .5) * 20, day: result.length % 7, week: ~~(result.length / 7) });
     }
     return result;
-  }, [entries, project.margeActuellePct]);
+  }, [entries, project.cpmRevenueActual, project.cpmCostActuel]);
 
   const getColor = (m: number) => {
     if (m > 45) return { bg: "bg-emerald-100", text: "text-emerald-700" };
@@ -685,7 +701,7 @@ function BayesianCard({ project, allProjects }: { project: ProjectData; allProje
         <>
           <strong className="text-blue-700">Le problème :</strong> une nouvelle campagne n'a pas assez de données. <strong>La solution :</strong> le prior bayésien utilise les campagnes terminées similaires comme point de départ.
           <br /><span className="font-mono text-[10px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded mt-1 inline-block">blended = prior × priorWeight + current × dataWeight</span>
-          <br />Une élasticité de <strong>{bayes.elasticity.toFixed(2)}</strong> signifie : +1pt marge → le KPI se dégrade de {Math.abs(bayes.elasticity).toFixed(2)}%. Ce chiffre alimente directement le Bid Shading Engine.
+          <br />Une élasticité de <strong>{(bayes.elasticity || 0).toFixed(2)}</strong> signifie : +1pt marge → le KPI se dégrade de {Math.abs(bayes.elasticity || 0).toFixed(2)}%. Ce chiffre alimente directement le Bid Shading Engine.
         </>
       }
     >
@@ -698,18 +714,18 @@ function BayesianCard({ project, allProjects }: { project: ProjectData; allProje
         <span className="text-gray-300 text-lg">→</span>
         <div className="text-center px-4 py-3 rounded-xl bg-blue-50 border border-blue-100 min-w-[100px]">
           <div className="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Current</div>
-          <div className="font-mono text-lg font-bold text-blue-600">{stats?.marginKpiElasticity.toFixed(2) || "—"}</div>
+          <div className="font-mono text-lg font-bold text-blue-600">{stats?.marginKpiElasticity != null ? stats.marginKpiElasticity.toFixed(2) : "—"}</div>
           <div className="text-[9px] text-blue-400">R² = {(stats?.elasticityConfidence || 0).toFixed(2)}</div>
         </div>
         <span className="text-gray-300 text-lg">→</span>
         <div className="text-center px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 min-w-[100px]">
           <div className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Blended</div>
-          <div className="font-mono text-lg font-bold text-emerald-600">{bayes.elasticity.toFixed(2)}</div>
-          <div className="text-[9px] text-emerald-400">Conf: {(bayes.confidence * 100).toFixed(0)}%</div>
+          <div className="font-mono text-lg font-bold text-emerald-600">{(bayes.elasticity || 0).toFixed(2)}</div>
+          <div className="text-[9px] text-emerald-400">Conf: {((bayes.confidence || 0) * 100).toFixed(0)}%</div>
         </div>
       </div>
       <div className="text-center mt-2 text-[10px] text-gray-400 font-mono">
-        Poids prior: {(priorWeight * 100).toFixed(0)}% | Poids data: {((1 - priorWeight) * 100).toFixed(0)}% | Source: {bayes.source}
+        Poids prior: {((priorWeight || 0) * 100).toFixed(0)}% | Poids data: {(((1 - (priorWeight || 0)) * 100)).toFixed(0)}% | Source: {bayes.source}
       </div>
     </Card>
   );
@@ -750,7 +766,7 @@ export function LearningEngineMiniWidget({ project, allProjects = [], onNavigate
         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ background: "linear-gradient(135deg,rgba(130,40,210,.3),rgba(30,160,215,.2))" }}>🧠</div>
         <div>
           <div className="text-xs font-bold text-gray-800">Learning Engine</div>
-          <div className="text-[10px] text-gray-500">Confiance {(bayes.confidence * 100).toFixed(0)}% • Élasticité {bayes.elasticity.toFixed(2)} • Bid optimal €{(project.cpmCostActuel * .87).toFixed(2)}</div>
+          <div className="text-[10px] text-gray-500">Confiance {((bayes.confidence || 0) * 100).toFixed(0)}% • Élasticité {(bayes.elasticity || 0).toFixed(2)} • Bid optimal €{((project.cpmCostActuel || 0) * .87).toFixed(2)}</div>
         </div>
       </div>
       <span className="text-xs font-bold text-blue-600 hover:text-blue-800">Voir le détail →</span>
