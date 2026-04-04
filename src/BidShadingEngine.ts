@@ -211,9 +211,11 @@ export function estimateWinRateCurve(
 
   const bidToRevenueRatio = currentCpmRevenue > 0 ? currentCpmCost / currentCpmRevenue : 0.5;
 
-  // Estimation du CPM marché médian
-  // Le CPM Revenue est un bon proxy du prix de clearing médian
-  const estimatedMarketCpm = currentCpmRevenue > 0 ? currentCpmRevenue * 0.85 : 3.0;
+  // Estimation du CPM marche median
+  // Le CPM Cost (notre bid) est le meilleur proxy du prix reel du marche
+  // Le CPM Revenue est le prix facture au client (inclut notre marge) — PAS le prix marche
+  // On utilise le CPM Cost comme reference, avec un leger ajustement
+  const estimatedMarketCpm = currentCpmCost > 0 ? currentCpmCost * 1.15 : 3.0;
 
   // --- ESTIMATION DU FILL RATE ACTUEL (proxy win rate) ---
   let currentFillRate = 0.65; // Défaut
@@ -366,7 +368,7 @@ export function computeOptimalBid(
 
     // Win rate estimé
     const winRate = winRateCurve.predict(candidateBid);
-    if (winRate < 0.15) continue; // Win rate trop bas, pas viable
+    if (winRate < 0.05) continue; // Win rate trop bas, pas viable
 
     // KPI projeté
     const projectedKpi = projectKpiFromBid(
@@ -728,14 +730,18 @@ function computeOptimalScenario(
   realKpiTrendPct?: number | null,
 ): BidShadingScenario {
 
-  const { optimalBid, optimalMargin, breakdown } = optimalResult;
+  const { optimalBid, optimalMargin } = optimalResult;
   const bidAdjPct = ((optimalBid - currentCpmCost) / currentCpmCost) * 100;
-  const newCpmRevenue = optimalBid / (1 - optimalMargin / 100);
+  const newCpmRevenue = optimalBid / Math.max(0.01, (1 - optimalMargin / 100));
 
-  // KPI projeté (déjà calculé dans breakdown)
-  let adjustedKpi = breakdown.projectedKpi;
+  // Recalculer le KPI proprement (ne pas utiliser breakdown qui peut etre stale)
+  const freshKpi = projectKpiFromBid(
+    currentKpi, currentCpmCost, optimalBid, currentCpmRevenue, newCpmRevenue,
+    isFin, kpiType, config, calibratedStats, currentMarginPct, optimalMargin
+  );
+  let adjustedKpi = freshKpi;
   if (realKpiTrendPct !== null && realKpiTrendPct !== undefined) {
-    adjustedKpi += breakdown.projectedKpi * Math.max(-0.30, Math.min(0.30, realKpiTrendPct * 3));
+    adjustedKpi += freshKpi * Math.max(-0.30, Math.min(0.30, realKpiTrendPct * 3));
   }
 
   // Fourchette — plus large car on change le bid
