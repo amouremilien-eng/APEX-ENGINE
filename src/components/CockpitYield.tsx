@@ -365,7 +365,7 @@ export function CockpitYield({ project, onChange, allProjects = [] , onSetActive
     }
   }
 
-  // 🔥 V8.1 : CPM Revenue GLOBAL = totalSpent / totalImpressions (pas une moyenne)
+  // 🔥 V8.1 : CPM Revenuee GLOBAL = totalSpent / totalImpressions (pas une moyenne)
   const totalImpUnits = allEntries.reduce((s, e) => {
     const cpm = e.cpmRevenue || 0;
     return cpm > 0 ? s + (e.budgetSpent || 0) / cpm : s;
@@ -394,7 +394,7 @@ export function CockpitYield({ project, onChange, allProjects = [] , onSetActive
       updates.actualKpi = Math.round(globalKpi * 1000) / 1000;
     }
 
-    // CPM Revenue global
+    // CPM Revenuee global
     if (cpmRevChanged) {
       updates.cpmRevenueActual = Math.round(globalCpmRevenue * 100) / 100;
       // Recalculer CPM Cost pour préserver la marge courante (évite boucle infinie)
@@ -729,7 +729,7 @@ else if (project.inputMode === "CPM Cost") {
 
       totalSpent += spent;
       totalCost += cost * spent;        // ✅ CORRECT : Σ(CPM Cost × Budget)
-      totalRevenue += revenue * spent;  // ✅ CORRECT : Σ(CPM Revenue × Budget)
+      totalRevenue += revenue * spent;  // ✅ CORRECT : Σ(CPM Revenuee × Budget)
       totalGain += spent * (margin / 100);
       totalKpiWeighted += spent * kpi;
     });
@@ -1014,9 +1014,9 @@ const avgCpmRevenue = totalImpressions > 0 ? totalSpent / totalImpressions : pro
     if (cpmRevVsCap > 5) {
       alerts.push({
         ruleId: "auto_cpm_over_cap",
-        ruleName: "CPM Revenu > Cap",
+        ruleName: "CPM Revenue > Cap",
         severity: cpmRevVsCap > 15 ? "critical" : "warning",
-        message: `CPM Revenu (${project.cpmRevenueActual.toFixed(2)} ${currSym}) dépasse le Cap de +${cpmRevVsCap.toFixed(1)}%. Client peut détecter.`,
+        message: `CPM Revenue (${project.cpmRevenueActual.toFixed(2)} ${currSym}) dépasse le Cap de +${cpmRevVsCap.toFixed(1)}%. Client peut détecter.`,
         triggeredAt: now,
         dismissed: false,
         metricValues: { cpm_revenue_vs_cap_pct: cpmRevVsCap }
@@ -1684,7 +1684,7 @@ const avgCpmRevenue = totalImpressions > 0 ? totalSpent / totalImpressions : pro
         `📊 Colonnes détectées (${detectedCols.length}/5) :\n` +
         `  • Nom : ${nameCol || "❌ Non trouvé (noms génériques)"}\n` +
         `  • Dépense : ${spendCol || "❌ Non trouvé (0€)"}\n` +
-        `  • CPM Revenue : ${cpmRevCol || "⚠️ Non trouvé (défaut: " + project.cpmRevenueActual.toFixed(2) + currSym + ")"}\n` +
+        `  • CPM Revenuee : ${cpmRevCol || "⚠️ Non trouvé (défaut: " + project.cpmRevenueActual.toFixed(2) + currSym + ")"}\n` +
         `  • Marge : ${marginCol ? marginCol + (marginIsDecimal ? " (converti de décimal)" : "") : "⚠️ Non trouvé (défaut: " + currentMarginPctCalc.toFixed(1) + "%)"}\n` +
         `  • KPI : ${kpiCol ? kpiCol + (kpiIsDecimal ? " (converti de décimal)" : "") : "⚠️ Non trouvé (défaut: " + project.actualKpi + ")"}\n\n` +
         `💰 Total spend : ${totalSpend.toFixed(2)} ${currSym}\n` +
@@ -2013,7 +2013,7 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
          } else if (marginGoal === "decrease") {
           // 🔥 V3 : Décréments modulés — inversé car baisse : ligne au-dessus → baisser plus fort
           const modDec = Math.max(0.3, Math.min(2.0, 1 + (li.marginPct - campaignMargin) / Math.max(campaignMargin, 1)));
-           // 🔥 V3.5 : CPM Revenue recalculé mathématiquement
+           // 🔥 V3.5 : CPM Revenuee recalculé mathématiquement
           const cpmCostLine = li.cpmRevenue * (1 - li.marginPct / 100);
           switch (li.perfCategory) {
             case "dead": newMargin = Math.max(5, li.marginPct - (10 * modDec)); action = "💀 DEAD → Couper"; break;
@@ -2428,7 +2428,7 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5 font-medium">CPM Revenu Actuel ({currSym})</label>
+              <label className="block text-xs text-gray-500 mb-1.5 font-medium">CPM Revenue Actuel ({currSym})</label>
               <input 
                 type="number" step="0.1"
                 className="w-full text-sm border-gray-200 bg-gray-50 rounded-lg p-2.5 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
@@ -2743,7 +2743,7 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
               />
             )}
             <MetricCard 
-              title="CPM Revenu Cumulé" 
+              title="CPM Revenue Cumulé" 
               value={`${(clientMode ? Math.min(dispCpmRev, project.cpmSoldCap || Infinity) : dispCpmRev).toFixed(2)} ${currSym}`} 
               icon={TrendingUp}
               accent="indigo"
@@ -3381,7 +3381,7 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
                     better: isFin ? "down" : "up"
                   },
                   {
-                    label: "CPM Revenu Cumulé",
+                    label: "CPM Revenue Cumulé",
                     v1: periodComparison.p1.avgCpmRevenue,
                     v2: periodComparison.p2.avgCpmRevenue,
                     fmt: (v: number) => `${v.toFixed(2)} ${currSym}`,
@@ -3767,15 +3767,15 @@ const coeffs = calibratedFromLearning.source !== "default"
         // ========================================
         
         // Bid stable = MÊME inventaire = MÊME conversion rate
-        // → Impact PUREMENT MATHÉMATIQUE du ratio CPM Revenue
+        // → Impact PUREMENT MATHÉMATIQUE du ratio CPM Revenuee
         
         const currentCpmRevenue = project.cpmRevenueActual;
         const currentCpmCost = cpmCostActuelCalc;
         
-        // Nouvelle CPM Revenue avec la nouvelle marge
+        // Nouvelle CPM Revenuee avec la nouvelle marge
         const newCpmRevenue_option1 = currentCpmCost / (1 - newMargin / 100);
         
-        // Ratio CPM Revenue (impact mathématique pur)
+        // Ratio CPM Revenuee (impact mathématique pur)
         const cpmRevenueRatio = newCpmRevenue_option1 / currentCpmRevenue;
         
         // Impact EXACT sur le KPI (financier)
@@ -4402,7 +4402,7 @@ const coeffs = calibratedFromLearning.source !== "default"
                               <div className="text-[9px] font-normal normal-case text-blue-500 mt-0.5">Globale cumulée (Rev)</div>
                             </th>
                            <th className="px-4 py-3 font-bold">
-                              <div>CPM Revenu</div>
+                              <div>CPM Revenue</div>
                               <div className="text-[9px] font-normal normal-case text-blue-500 mt-0.5">Cumulé global</div>
                             </th>
                             <th className="px-4 py-3 font-bold">

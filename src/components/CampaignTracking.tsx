@@ -672,7 +672,7 @@ export function CampaignTracking({ project, onChange }: CampaignTrackingProps) {
                       <input type="number" step="0.01" className="w-full text-base border-gray-300 bg-gray-50 rounded-xl p-4 border focus:ring-2 focus:ring-blue-500 outline-none font-medium" value={formData.budgetSpent || ''} onChange={(e) => handleInputChange("budgetSpent", Number(e.target.value))} />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">📈 CPM Revenu ({currSym})</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">📈 CPM Revenue ({currSym})</label>
                       <input type="number" step="0.01" className="w-full text-base border-gray-300 bg-gray-50 rounded-xl p-4 border focus:ring-2 focus:ring-blue-500 outline-none font-medium" value={formData.cpmRevenue ?? ''} onChange={(e) => handleInputChange("cpmRevenue", Number(e.target.value))} />
                     </div>
                     <div>
@@ -730,7 +730,7 @@ export function CampaignTracking({ project, onChange }: CampaignTrackingProps) {
                     {project.trackingMode === "adgroup" && (<span className="text-xs font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full ml-2">Mode Ad Group</span>)}
                     {project.trackingMode === "campaign" && (<span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-2">Mode Sous-Campagne</span>)}
                   </h3>
-                  <p className="text-sm text-orange-700 mt-2">Remplissez toutes les lignes d'un coup. CPM Revenu et Marge pré-remplis.</p>
+                  <p className="text-sm text-orange-700 mt-2">Remplissez toutes les lignes d'un coup. CPM Revenue et Marge pré-remplis.</p>
                 </div>
                 <div className="p-6">
                   {bulkRows.length === 0 ? (

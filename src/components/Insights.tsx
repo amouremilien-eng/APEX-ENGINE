@@ -62,7 +62,7 @@ const fmtKpi = (val: number) => {
     if (totalDays === 0 || totalBudget === 0) return { totalDays, totalBudget, totalGain, avgMargin: 0, avgCpmRevenue: 0, avgKpi: 0 };
     // Marge cumulée = gain total / budget total
     const avgMargin = (totalGain / totalBudget) * 100;
-    // CPM Revenu cumulé = total spend / total impressions
+    // CPM Revenue cumulé = total spend / total impressions
     const totalImp = dailyData.reduce((s, d) => d.cpmRevenue > 0 ? s + d.budgetSpent / d.cpmRevenue : s, 0);
     const avgCpmRevenue = totalImp > 0 ? totalBudget / totalImp : 0;
     // KPI cumulé (harmonique pour financier, pondéré pour qualité)
@@ -258,7 +258,7 @@ const fmtKpi = (val: number) => {
           </div>
         </div>
 
-        {/* Graphique 3 : CPM Revenu vs CPM Cost */}
+        {/* Graphique 3 : CPM Revenue vs CPM Cost */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 p-6">
             <h3 className="text-lg font-bold text-amber-900">💵 CPM : Revenu vs Cost</h3>
@@ -298,7 +298,7 @@ const fmtKpi = (val: number) => {
                     dataKey="cpmRevenue" 
                     stroke="#f59e0b" 
                     strokeWidth={3}
-                    name="CPM Revenu"
+                    name="CPM Revenue"
                     dot={{ r: 5, fill: '#f59e0b' }}
                   />
                   <Line 
