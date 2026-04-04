@@ -475,7 +475,10 @@ function projectKpiFromBid(
   newMargin?: number,
 ): number {
   if (currentKpi === 0) return 0;
-  if (Math.abs(newBid - currentBid) < 0.01) return currentKpi;
+  // Si le bid ne change pas ET la marge ne change pas, retourner le KPI actuel
+  if (Math.abs(newBid - currentBid) < 0.01 && (newMargin === undefined || currentMargin === undefined || Math.abs(newMargin - currentMargin) < 0.5)) {
+    return currentKpi;
+  }
 
   // --- PRIORITÉ 1 : Modèle de saturation (non-linéaire) ---
   // Utilise seulement si confiance elevee ET prediction raisonnable

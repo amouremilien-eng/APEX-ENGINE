@@ -4227,7 +4227,7 @@ const coeffs = calibratedFromLearning.source !== "default"
                                     <div className={cn("px-3 py-1 rounded-full text-xs font-black",
                                       riskColor === "red" ? "bg-red-200 text-red-800" : riskColor === "amber" ? "bg-amber-200 text-amber-800" : "bg-emerald-200 text-emerald-800"
                                     )}>
-                                      {riskScore}/100 — {riskLevel === "HIGH" ? "ÉLEVÉ" : riskLevel === "MEDIUM" ? "MODÉRÉ" : "FAIBLE"}
+                                      {Math.round(riskScore)}/100 — {riskLevel === "HIGH" ? "ÉLEVÉ" : riskLevel === "MEDIUM" ? "MODÉRÉ" : "FAIBLE"}
                                     </div>
                                   </div>
                                   <div className="w-full bg-white/50 rounded-full h-2 mt-2">
