@@ -738,7 +738,7 @@ function computeOptimalScenario(
   realKpiTrendPct?: number | null,
 ): BidShadingScenario {
 
-  const { optimalBid, optimalMargin } = optimalResult;
+  const { optimalBid, optimalMargin, breakdown } = optimalResult;
   const bidAdjPct = ((optimalBid - currentCpmCost) / currentCpmCost) * 100;
   const newCpmRevenue = optimalBid / Math.max(0.01, (1 - optimalMargin / 100));
 
