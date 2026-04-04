@@ -69,8 +69,9 @@ export function AnalysePieCards({ project }: { project: ProjectData }) {
 
   const target = project.targetKpi || 0;
   const actual = project.actualKpi || 0;
-  const isFin = ["CPA", "CPV", "CPC"].includes(project.kpiType);
+  const isFin = ["CPA", "CPV", "CPC", "CPCV", "CPL", "CPI"].includes(project.kpiType);
   const kpiMet = isFin ? actual <= target : actual >= target;
+  const fmtKpiVal = (v: number) => v < 0.1 ? v.toFixed(4) : v < 1 ? v.toFixed(3) : v.toFixed(2);
 
   const totalDays = project.durationDays || 30;
   const elapsedDays = entries.length;
@@ -127,13 +128,13 @@ export function AnalysePieCards({ project }: { project: ProjectData }) {
       {/* KPI — card couleur */}
       <div className={`rounded-xl p-4 border shadow-sm ${kc.bg} ${kc.border}`}>
         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">KPI {project.kpiType}</div>
-        <div className={`text-2xl font-black ${kc.text}`} style={{ fontVariantNumeric: "tabular-nums" }}>{actual > 0 ? actual.toFixed(2) : "—"}</div>
+        <div className={`text-2xl font-black ${kc.text}`} style={{ fontVariantNumeric: "tabular-nums" }}>{actual > 0 ? fmtKpiVal(actual) : "—"}</div>
         <div className="flex items-center gap-2 mt-3">
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${kpiMet ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
             {kpiMet ? "ON TARGET" : "OFF TARGET"}
           </span>
         </div>
-        <div className="text-[10px] text-gray-500 mt-2">Objectif : {target > 0 ? target.toFixed(2) : "—"}</div>
+        <div className="text-[10px] text-gray-500 mt-2">Objectif : {target > 0 ? fmtKpiVal(target) : "—"}</div>
       </div>
 
       {/* Avancement — card couleur */}
