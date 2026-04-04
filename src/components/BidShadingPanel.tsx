@@ -231,6 +231,18 @@ export function BidShadingPanel(props: BidShadingPanelProps) {
                 )}
               </div>
 
+              {/* CPM Revenue + Marge */}
+              <div className="flex items-center justify-between mb-1 px-1">
+                <span className="text-[10px] text-gray-500">CPM Revenue</span>
+                <span className="text-xs font-bold text-gray-800">{(scenario.newCpmRevenue || 0).toFixed(2)} {currSym}</span>
+              </div>
+              <div className="flex items-center justify-between mb-2 px-1">
+                <span className="text-[10px] text-gray-500">Marge</span>
+                <span className={cn("text-xs font-bold", scenario.effectiveMarginPct >= 40 ? "text-emerald-600" : scenario.effectiveMarginPct >= 20 ? "text-blue-600" : "text-amber-600")}>
+                  {(scenario.effectiveMarginPct || 0).toFixed(1)}%
+                </span>
+              </div>
+
               {/* Win Rate */}
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-[10px] text-gray-500">Win Rate</span>
