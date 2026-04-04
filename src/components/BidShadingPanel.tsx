@@ -132,42 +132,6 @@ export function BidShadingPanel(props: BidShadingPanelProps) {
 
   return (
     <div className="space-y-4">
-      {/* HEADER — Contexte Marché */}
-      <div className="bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-900 text-white rounded-lg flex items-center justify-center text-xs font-black">BS</div>
-            <div>
-              <h4 className="font-black text-gray-900 text-sm">Bid Shading Engine</h4>
-              <p className="text-[10px] text-gray-500">
-                Confiance : {(winRateCurve.confidence * 100).toFixed(0)}% ({winRateCurve.source})
-                {" • "}Marché : {marketContext.estimatedMarketCpm.toFixed(2)} {currSym}
-                {" • "}Position : P{marketContext.currentBidPercentile}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={cn("px-2 py-1 rounded-full text-[10px] font-bold",
-              marketContext.competitionLevel === "high" ? "bg-red-100 text-red-700" :
-              marketContext.competitionLevel === "medium" ? "bg-amber-100 text-amber-700" :
-              "bg-emerald-100 text-emerald-700"
-            )}>
-              Compétition {marketContext.competitionLevel === "high" ? "Forte" :
-                marketContext.competitionLevel === "medium" ? "Moyenne" : "Faible"}
-            </span>
-            <span className={cn("px-2 py-1 rounded-full text-[10px] font-bold",
-              marketContext.currentBidPosition === "below_market" ? "bg-amber-100 text-amber-700" :
-              marketContext.currentBidPosition === "above_market" ? "bg-emerald-100 text-emerald-700" :
-              "bg-blue-100 text-blue-700"
-            )}>
-              {marketContext.currentBidPosition === "below_market" ? "Sous le marché" :
-               marketContext.currentBidPosition === "above_market" ? "Au-dessus du marché" :
-               "Au marché"}
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* 3 SCÉNARIOS */}
       <div className="grid grid-cols-3 gap-4">
         {scenarios.map((scenario) => {
