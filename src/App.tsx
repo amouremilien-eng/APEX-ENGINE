@@ -4,6 +4,7 @@ import { AppROI } from "./components/AppROI";
 import { Legal } from "./components/Legal";
 import { Sidebar } from "./components/Sidebar";
 import { CockpitYield } from "./components/CockpitYield";
+import { LearningEngineDashboard } from "./components/LearningEngineDashboard";
 import { OptimizationCycle } from "./components/OptimizationCycle";
 import { Portfolio } from "./components/Portfolio";
 import { MarketWatch } from "./components/MarketWatch";
@@ -242,6 +243,7 @@ export default function App() {
 
   const tabTitles: Record<string, string> = {
     cockpit: "Bloomberg Terminal Ads",
+    learning: "Learning Engine",
     tracking: "Suivi Campagne",
     cycle: "Cycle des Optimisations",
     portfolio: "Portfolio & Performance",
@@ -899,7 +901,7 @@ export default function App() {
           animation: appReady ? "appMainIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both" : "none",
           animationDelay: "0.3s",
         }}>
-          {activeTab === "cockpit" && <CockpitYield project={activeProject} onChange={handleProjectChange} />}
+          {activeTab === "cockpit" && <CockpitYield project={activeProject} onChange={handleProjectChange} allProjects={globalProjects} onSetActiveTab={setActiveTab} />}
           {activeTab === "tracking" && <CampaignTracking project={activeProject} onChange={handleProjectChange} />} 
           {activeTab === "cycle" && <OptimizationCycle project={activeProject} />}
           {/* 🔐 V8.0 : Portfolio et Benchmark reçoivent globalProjects (admin = tous les users) */}
@@ -920,6 +922,7 @@ export default function App() {
             </div>
           )}
           {activeTab === "market" && <MarketWatch currentCost={activeProject.cpmCostActuel} />}
+          {activeTab === "learning" && <LearningEngineDashboard project={activeProject} allProjects={globalProjects} onNavigateToMarge={() => setActiveTab("cockpit")} />}
           {activeTab === "geotraffic" && <GeoTraffic />}
           {activeTab === "settings" && <Settings />}
           {activeTab === "legal" && <Legal />}
