@@ -10,7 +10,8 @@ import {
   Calendar,
   BarChart3,
   Trophy,
-  Globe
+  Globe,
+  Brain
 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { ProjectData } from "../types";
@@ -32,6 +33,7 @@ interface SidebarProps {
 const NAV_ITEMS_BASE = [
   { id: "tracking", label: "Suivi Campagne", icon: Calendar, adminOnly: false },
   { id: "cockpit", label: "Marge & Bid Shading", icon: LayoutDashboard, adminOnly: false },
+  { id: "learning", label: "Learning Engine", icon: Brain, adminOnly: false },
   { id: "cycle", label: "Cycle des Optimisations", icon: RefreshCw, adminOnly: false },
   { id: "portfolio", label: "Portfolio & Performance", icon: Briefcase, adminOnly: false },
   { id: "market", label: "Market Watch", icon: LineChart, adminOnly: false },
