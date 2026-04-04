@@ -9,6 +9,7 @@ import { TTDImporter } from "./TTDImporter";
 import { ParetoPanel } from "./ParetoPanel";
 // 💰 V11.0 : Bid Shading Engine — Bloomberg Terminal Ads
 import { BidShadingPanel } from "./BidShadingPanel";
+import { AnalysePieCards, RiskControlsPanel, DataQualityPanel, BacktestPanel } from "./RiskDashboard";
 // 🔥 V8.0 : Learning Engine
 import {
   computeAdGroupStats,
@@ -2814,6 +2815,10 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
             <div className="p-8">
               {activeTab === "analyse" && (
   <div className="space-y-4">
+    {/* Camemberts de synthese */}
+    <AnalysePieCards project={project} />
+    {/* Controles de risque */}
+    <RiskControlsPanel project={project} />
     {/* 🔥 CAS SPÉCIAL : KPI à 0 = AUCUNE PERFORMANCE */}
     {project.actualKpi === 0 ? (
       <div className="p-5 bg-red-50 border border-red-100 rounded-xl flex items-start gap-4 text-red-900">
@@ -3425,9 +3430,13 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
         )}
       </div>
     )}
+
+    {/* Data Quality + Backtest */}
+    <DataQualityPanel project={project} />
+    <BacktestPanel project={project} />
   </div>
 )}
-      
+
 
               {activeTab === "comparateur" && (
                 <div className="space-y-8">
