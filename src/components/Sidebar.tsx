@@ -157,6 +157,7 @@ export function Sidebar({
         
         {[
           { id: "help", icon: HelpCircle, label: "Help Center" },
+          { id: "legal", icon: SettingsIcon, label: "Mentions Legales" },
           { id: "settings", icon: SettingsIcon, label: "Settings" },
         ].map(item => (
           <button key={item.id}

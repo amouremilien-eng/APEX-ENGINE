@@ -382,7 +382,7 @@ export default function App() {
   };
 
   return (
-    <div className={`flex h-screen w-full bg-[#f8f9fa] overflow-hidden font-sans text-gray-900 theme-${localUser.theme}`}>
+    <div className={`flex h-screen w-full overflow-hidden font-sans text-gray-900 theme-${localUser.theme}`} style={{ background: "linear-gradient(160deg, #eef2f7 0%, #f5f0eb 30%, #f0f2f5 60%, #ebe8f0 100%)" }}>
       
       {/* 🎬 Entrance animation keyframes */}
       <style>{`
