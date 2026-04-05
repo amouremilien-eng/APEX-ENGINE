@@ -1,9 +1,9 @@
 import { 
-  LayoutDashboard, 
-  RefreshCw, 
-  Briefcase, 
-  LineChart, 
-  Save, 
+  LayoutDashboard,
+  RefreshCw,
+  Briefcase,
+  LineChart,
+  Save,
   Trash2,
   Settings as SettingsIcon,
   HelpCircle,
@@ -11,7 +11,8 @@ import {
   BarChart3,
   Trophy,
   Globe,
-  Brain
+  Brain,
+  Banknote
 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { ProjectData } from "../types";
@@ -32,7 +33,7 @@ interface SidebarProps {
 
 const NAV_ITEMS_BASE = [
   { id: "tracking", label: "Suivi Campagne", icon: Calendar, adminOnly: false },
-  { id: "cockpit", label: "Marge & Bid Shading", icon: LayoutDashboard, adminOnly: false },
+  { id: "cockpit", label: "Marge & Bid Shading", icon: Banknote, adminOnly: false },
   { id: "learning", label: "Learning Engine", icon: Brain, adminOnly: false },
   { id: "cycle", label: "Cycle des Optimisations", icon: RefreshCw, adminOnly: false },
   { id: "portfolio", label: "Portfolio & Performance", icon: Briefcase, adminOnly: false },
@@ -54,43 +55,61 @@ export function Sidebar({
   const navItems = NAV_ITEMS_BASE.filter(item => !item.adminOnly || isAdmin);
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen shrink-0">
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+    <div className="w-64 flex flex-col h-screen shrink-0" style={{
+      background: "rgba(255,255,255,0.25)",
+      backdropFilter: "blur(40px) saturate(1.8)",
+      WebkitBackdropFilter: "blur(40px) saturate(1.8)",
+      borderRight: "1px solid rgba(255,255,255,0.45)",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)",
+    }}>
+      <div className="p-5 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.3)" }}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{ background: "rgba(0,0,0,0.65)" }}>
           {user.initials}
         </div>
         <div className="flex-1 min-w-0">
-          <span className="font-bold text-gray-900 text-lg truncate block">{user.name}</span>
+          <span className="font-bold text-lg truncate block" style={{ color: "rgba(0,0,0,0.85)" }}>{user.name}</span>
           {isAdmin && (
-            <span className="text-[9px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
-              👑 ADMIN
+            <span className="text-[8px] font-black uppercase tracking-wider" style={{ color: "rgba(0,0,0,0.4)" }}>
+              Admin
             </span>
           )}
         </div>
       </div>
 
-      <div className="px-4 py-2 flex-1 overflow-y-auto">
-        <div className="mb-4">
-          <div className="text-xs font-semibold text-gray-400 mb-3 px-3 uppercase tracking-wider">Main Menu</div>
+      <div className="px-3 py-2 flex-1 overflow-y-auto">
+        <div className="mb-2">
+          <div className="text-[10px] font-bold mb-2 px-3 uppercase tracking-widest" style={{ color: "rgba(0,0,0,0.25)" }}>Navigation</div>
         </div>
 
-        <div className="mb-8">
-          <nav className="space-y-1">
+        <div className="mb-6">
+          <nav className="space-y-0.5">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                   activeTab === item.id
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                    ? ""
+                    : ""
                 )}
+                style={activeTab === item.id ? {
+                  background: "rgba(255,255,255,0.5)",
+                  color: "rgba(0,0,0,0.9)",
+                  fontWeight: 600,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                  border: "1px solid rgba(255,255,255,0.5)",
+                } : {
+                  color: "rgba(0,0,0,0.5)",
+                  border: "1px solid transparent",
+                }}
+                onMouseEnter={(e) => { if (activeTab !== item.id) { e.currentTarget.style.background = "rgba(255,255,255,0.3)"; e.currentTarget.style.color = "rgba(0,0,0,0.75)"; }}}
+                onMouseLeave={(e) => { if (activeTab !== item.id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(0,0,0,0.5)"; }}}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
                 {item.adminOnly && (
-                  <span className="text-[8px] font-black bg-amber-100 text-amber-600 px-1 py-0.5 rounded ml-auto">
+                  <span className="text-[8px] font-black px-1 py-0.5 rounded ml-auto" style={{ background: "rgba(251,191,36,0.15)", color: "#b45309" }}>
                     ADMIN
                   </span>
                 )}
@@ -100,13 +119,16 @@ export function Sidebar({
         </div>
 
         {currentProject && (
-          <div className="pt-4 border-t border-gray-100 space-y-2">
+          <div className="pt-4 space-y-2" style={{ borderTop: "1px solid rgba(255,255,255,0.3)" }}>
             <button
               onClick={() => {
                 const name = prompt("Nom de la campagne :", currentProject?.name || "Nouvelle Campagne");
                 if (name) onSaveProject(name);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-emerald-700 transition-colors"
+              style={{ }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(16,185,129,0.1)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               <Save className="w-5 h-5" />
               Sauvegarder
@@ -118,7 +140,10 @@ export function Sidebar({
                   onDeleteProject(currentProject.id);
                 }
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 transition-colors"
+              style={{ }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               <Trash2 className="w-5 h-5" />
               Supprimer
@@ -127,39 +152,27 @@ export function Sidebar({
         )}
       </div>
       
-      <div className="p-4 border-t border-gray-200 space-y-1">
-        <div className="text-xs font-semibold text-gray-400 mb-3 px-3 uppercase tracking-wider">Settings</div>
+      <div className="p-3 space-y-1" style={{ borderTop: "1px solid rgba(255,255,255,0.3)" }}>
+        <div className="text-[10px] font-bold mb-2 px-3 uppercase tracking-widest" style={{ color: "rgba(0,0,0,0.25)" }}>Outils</div>
         
-        <button 
-          onClick={() => setActiveTab("help")}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-            activeTab === "help" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-          )}
-        >
-          <HelpCircle className="w-5 h-5" />
-          Help Center
-        </button>
-        <button 
-          onClick={() => setActiveTab("legal")}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-            activeTab === "legal" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-          )}
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
-          Mentions Légales
-        </button>
-        <button 
-          onClick={() => setActiveTab("settings")}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-            activeTab === "settings" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-          )}
-        >
-          <SettingsIcon className="w-5 h-5" />
-          Settings
-        </button>
+        {[
+          { id: "help", icon: HelpCircle, label: "Help Center" },
+          { id: "settings", icon: SettingsIcon, label: "Settings" },
+        ].map(item => (
+          <button key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+            style={activeTab === item.id ? {
+              background: "rgba(255,255,255,0.5)", color: "rgba(0,0,0,0.9)", fontWeight: 600,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid rgba(255,255,255,0.5)",
+            } : { color: "rgba(0,0,0,0.5)", border: "1px solid transparent" }}
+            onMouseEnter={(e) => { if (activeTab !== item.id) { e.currentTarget.style.background = "rgba(255,255,255,0.3)"; e.currentTarget.style.color = "rgba(0,0,0,0.75)"; }}}
+            onMouseLeave={(e) => { if (activeTab !== item.id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(0,0,0,0.5)"; }}}
+          >
+            <item.icon className="w-5 h-5" />
+            {item.label}
+          </button>
+        ))}
       </div>
     </div>
   );
