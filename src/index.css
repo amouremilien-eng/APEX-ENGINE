@@ -9,6 +9,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+@keyframes sidebarGlow {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 0% 100%; }
+}
+
 @layer base {
   body.theme-salesin {
     --bg-main: #f8f9fa;

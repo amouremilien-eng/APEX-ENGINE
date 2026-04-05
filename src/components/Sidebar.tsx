@@ -56,11 +56,13 @@ export function Sidebar({
 
   return (
     <div className="w-64 flex flex-col h-screen shrink-0" style={{
-      background: "rgba(255,255,255,0.25)",
+      background: "linear-gradient(180deg, rgba(230,240,255,0.3) 0%, rgba(255,255,255,0.2) 30%, rgba(245,235,255,0.25) 60%, rgba(235,250,245,0.2) 100%)",
+      backgroundSize: "100% 300%",
+      animation: "sidebarGlow 12s ease-in-out infinite",
       backdropFilter: "blur(40px) saturate(1.8)",
       WebkitBackdropFilter: "blur(40px) saturate(1.8)",
-      borderRight: "1px solid rgba(255,255,255,0.45)",
-      boxShadow: "0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)",
+      borderRight: "none",
+      boxShadow: "8px 0 32px rgba(0,0,0,0.04)",
     }}>
       <div className="p-5 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.3)" }}>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{ background: "rgba(0,0,0,0.65)" }}>

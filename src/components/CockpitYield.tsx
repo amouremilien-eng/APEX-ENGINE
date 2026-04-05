@@ -10,6 +10,7 @@ import { ParetoPanel } from "./ParetoPanel";
 // 💰 V11.0 : Bid Shading Engine — Bloomberg Terminal Ads
 import { BidShadingPanel } from "./BidShadingPanel";
 import { AnalysePieCards, RiskControlsPanel, DataQualityPanel, BacktestPanel } from "./RiskDashboard";
+import { CampaignOverview } from "./CampaignOverview";
 // 🔥 V8.0 : Learning Engine
 import {
   computeAdGroupStats,
@@ -2895,7 +2896,11 @@ if (enriched.insight) action += ` • ${enriched.insight}`;
             <div className="p-8">
               {activeTab === "analyse" && (
   <div className="space-y-4">
-    {/* Heatmap Campagne — en premier */}
+    {/* Vue consolidee multi-campagnes */}
+    {allProjects.length > 1 && (
+      <CampaignOverview projects={allProjects} currentProjectId={project.id} onSelectProject={() => {}} />
+    )}
+    {/* Heatmap Campagne */}
     {project.dailyEntries && project.dailyEntries.length > 0 && (
       <HeatmapCampagne project={project} currSym={currSym} fmtKpi={fmtKpi} clientMode={clientMode} />
     )}

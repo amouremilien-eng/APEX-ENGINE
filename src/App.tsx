@@ -420,7 +420,12 @@ export default function App() {
         isAdmin={isAdmin}
       />
       </div>
-      
+
+      {/* Degradé sidebar → contenu */}
+      <div className="w-8 h-full shrink-0 -ml-4 z-10 pointer-events-none" style={{
+        background: "linear-gradient(to right, rgba(255,255,255,0.2), transparent)",
+      }} />
+
       <div className="flex-1 flex flex-col h-full" style={animsDone ? {} : {
         opacity: appReady ? 1 : 0,
       }}>
@@ -897,7 +902,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-hidden" style={animsDone ? {} : {
+        <main className="flex-1 overflow-hidden relative" style={animsDone ? {} : {
           animation: appReady ? "appMainIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both" : "none",
           animationDelay: "0.3s",
         }}>
